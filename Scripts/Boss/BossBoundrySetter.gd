@@ -4,6 +4,7 @@ extends Area2D
 @onready var screenSize = GlobalFunctions.get_screen_size()
 
 @export_node_path var bossPath
+@export var bossMusic = load("res://Audio/Soundtrack/BossEggman.ogg")
 
 @export var keepLeftLocked = true
 @export var keepTopLocked = true
@@ -45,14 +46,15 @@ func _on_BoundrySetter_body_entered(body):
 							i.limitRight = min(global_position.x+screenSize.x/2,Global.hardBorderRight)
 						if lockBottom:
 							i.limitBottom = min(global_position.y+screenSize.y/2,Global.hardBorderBottom)
-					
+
 					Global.main.set_volume(-50)
 					await Global.main.volume_set
 					Global.main.set_volume(0,100)
-					
+
+					Global.bossMusic.stream = bossMusic
 					Global.bossMusic.play()
 					boss.active = true
-					
+
 					if boss.has_signal("boss_over"):
 						boss.connect("boss_over",Callable(self,"boss_completed"))
 

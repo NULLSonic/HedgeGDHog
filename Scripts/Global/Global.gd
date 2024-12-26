@@ -43,7 +43,7 @@ var effectTheme = null
 var drowning = null
 var life = null
 # song themes to play for things like invincibility and speed shoes
-var themes = [preload("res://Audio/Soundtrack/1. SWD_Invincible.ogg"),preload("res://Audio/Soundtrack/2. SWD_SpeedUp.ogg"),preload("res://Audio/Soundtrack/4. SWD_StageClear.ogg")]
+var themes = [preload("res://Audio/Soundtrack/Invincible.ogg"),preload("res://Audio/Soundtrack/Sneakers.ogg"),preload("res://Audio/Soundtrack/ActClear.ogg")]
 # index for current theme
 var currentTheme = 0
 
@@ -74,10 +74,10 @@ var PlayerChar1 = CHARACTERS.SONIC
 var PlayerChar2 = CHARACTERS.TAILS
 
 # Level settings
-var hardBorderLeft   = -100000000
-var hardBorderRight  =  100000000
-var hardBorderTop    = -100000000
-var hardBorderBottom =  100000000
+var hardBorderLeft		= -100000000
+var hardBorderRight		=  100000000
+var hardBorderTop		= -100000000
+var hardBorderBottom	=  100000000
 
 # Animal spawn type reference, see the level script for more information on the types
 var animals = [0,1]
@@ -107,7 +107,7 @@ func _ready():
 	soundChannel.bus = "SFX"
 	# load game data
 	load_settings()
-	
+
 	# check if main scene is root (prevents crashing if you started from another scene)
 	if !(get_tree().current_scene is MainGameScene):
 		get_tree().paused = true
@@ -129,7 +129,7 @@ func _process(delta):
 	# count global timer if game isn't paused
 	if !get_tree().paused:
 		globalTimer += delta
-	
+
 # reset values, self explanatory, put any variables to their defaults in here
 func reset_values():
 	lives = 3
@@ -186,7 +186,7 @@ func save_settings():
 	# save settings
 	file.set_value("Volume","SFX",AudioServer.get_bus_volume_db(AudioServer.get_bus_index("SFX")))
 	file.set_value("Volume","Music",AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Music")))
-	
+
 	file.set_value("Resolution","Zoom",zoomSize)
 	file.set_value("Resolution","FullScreen",((get_window().mode == Window.MODE_EXCLUSIVE_FULLSCREEN) or (get_window().mode == Window.MODE_FULLSCREEN)))
 	# save config and close
@@ -198,17 +198,16 @@ func load_settings():
 	var err = file.load("user://Settings.cfg")
 	if err != OK:
 		return false # Return false as an error
-	
+
 	if file.has_section_key("Volume","SFX"):
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"),file.get_value("Volume","SFX"))
-	
+
 	if file.has_section_key("Volume","Music"):
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"),file.get_value("Volume","Music"))
-	
+
 	if file.has_section_key("Resolution","Zoom"):
 		zoomSize = file.get_value("Resolution","Zoom")
 		get_window().set_size(get_viewport().get_visible_rect().size*zoomSize)
-	
+
 	if file.has_section_key("Resolution","FullScreen"):
 		get_window().mode = Window.MODE_EXCLUSIVE_FULLSCREEN if (file.get_value("Resolution","FullScreen")) else Window.MODE_WINDOWED
-	

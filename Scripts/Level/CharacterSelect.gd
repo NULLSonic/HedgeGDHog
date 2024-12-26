@@ -1,7 +1,7 @@
 extends Node2D
 
 
-@export var music = preload("res://Audio/Soundtrack/10. SWD_CharacterSelect.ogg")
+@export var music = preload("res://Audio/Soundtrack/SaveSelect.ogg")
 @export var nextZone = load("res://Scene/Zones/BaseZone.tscn")
 var selected = false
 

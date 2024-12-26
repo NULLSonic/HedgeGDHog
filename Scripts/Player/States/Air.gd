@@ -156,6 +156,12 @@ func _physics_process(delta):
 				if parent.animator.current_animation == "dropDash" and parent.character == Global.CHARACTERS.SONIC:
 					parent.animator.play("roll")
 	elif !parent.animator.current_animation == "roll":
+		if parent.movement.x > 0:
+			if parent.animator.has_animation("air_walk"):
+				parent.animator.queue("air_walk")
+		else:
+			if parent.animator.has_animation("fall"):
+				parent.animator.queue("fall")
 		if parent.any_action_pressed():
 			parent.set_state(parent.STATES.ROLL,parent.currentHitbox.ROLL)
 			parent.animator.play("roll")

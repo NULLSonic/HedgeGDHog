@@ -35,19 +35,19 @@ func get_player(index):
 	if players.size() >= index + 1:
 		return players[index][0]
 	return null
-	
+
 #func append_player(player, phase, radius, z_level):
 #	players.append([player, phase, radius, z_level])
-	
+
 func get_player_phase(index):
 	return players[index][1]
 
 func set_player_phase(index, value):
 	players[index][1] = value
-	
+
 func get_player_radius(index):
 	return players[index][2]
-	
+
 func get_player_z_level(index):
 	return players[index][3]
 
@@ -116,7 +116,7 @@ func attach_player(player):
 	if find_player(player) >= 0:
 		return
 
-	player.set_state(player.STATES.ANIMATION)	
+	player.set_state(player.STATES.ANIMATION)
 	var player_z_level = player.get_z_index()
 	var player_radius = clamp(player.global_position.x - global_position.x, -max_radius, max_radius)
 	var player_phase = 0
@@ -141,7 +141,7 @@ func attach_player(player):
 func detach_player(player, index):
 	player.set_z_index(get_player_z_level(index))
 	players.remove_at(index)
-	
+
 	if player.currentState == player.STATES.DIE:
 		player.animator.play("die")
 
@@ -150,18 +150,18 @@ func detach_player(player, index):
 
 	if player.currentState != player.STATES.DIE:
 		player.translate = false
-		
+
 func set_anim(player, lookUp, lookDown):
 	var curAnim = player.animator.get_assigned_animation()
 	var targetAnim
-	
-	if lookUp and !lookDown:
+
+	if lookUp and !lookDown and player.animator.has_animation("yRotationLookUp"):
 		targetAnim = "yRotationLookUp"
-	elif lookDown and !lookUp:
+	elif lookDown and !lookUp and player.animator.has_animation("yRotationLookDown"):
 		targetAnim = "yRotationLookDown"
 	else:
 		targetAnim = "yRotation"
-		
+
 	if targetAnim != curAnim:
 		var seekTime = player.animator.get_current_animation_position()
 		player.animator.play(targetAnim)
@@ -171,7 +171,7 @@ func set_anim(player, lookUp, lookDown):
 			player.get_node("HitBox").shape.size = player.currentHitbox.CROUCH
 			player.get_node("HitBox").position = player.hitBoxOffset.crouch
 		else:
-			#player.set_hitbox(player.currentHitbox.NORMAL, true)	
+			#player.set_hitbox(player.currentHitbox.NORMAL, true)
 			player.get_node("HitBox").position = player.hitBoxOffset.normal
 			player.get_node("HitBox").shape.size = player.currentHitbox.NORMAL
 
@@ -179,7 +179,7 @@ func _process(delta):
 	upHeld = false
 	downHeld = false
 
-	# We loop backwards so that if we detach a player, they won't affect the index of the next player	
+	# We loop backwards so that if we detach a player, they won't affect the index of the next player
 	for index in range(players.size() - 1, -1, -1):
 		# Determine inputs, once it's available change player animations
 		# Note that we only care if one player is holding a direction even if they
@@ -193,7 +193,7 @@ func _process(delta):
 		elif player.inputs[player.INPUTS.YINPUT] > 0:
 			downHeld = true
 			playerHeldDown = true
-		
+
 		set_anim(player, playerHeldUp, playerHeldDown)
 
 		# If the player is closer to the center, the influence of their phase is diminished.
@@ -203,7 +203,7 @@ func _process(delta):
 			detach_player(player, index)
 			# Whoa, jump!
 			player.action_jump("roll", true, false)
-			
+
 			# Jump should never go downwards
 			#player.movement.y = min(player.movement.y - _yVel * impartFactor, -player.jmp)
 			player.movement.y = min(player.movement.y + _yVel * impartFactor, 0)
@@ -212,7 +212,7 @@ func _process(delta):
 				player.position.y -= _yVel * delta + 10
 			player.queue_redraw()
 			continue
-			
+
 		if player.currentState != player.STATES.ANIMATION:
 			detach_player(player, index)
 

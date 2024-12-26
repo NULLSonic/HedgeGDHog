@@ -1,6 +1,6 @@
 extends Node
 # This script is purely for lookup physics variables to avoid grouping
-# physics variables in with objects, 
+# physics variables in with objects,
 
 @export var speedStepLimit = 8
 @export var groundLookDistance = 14

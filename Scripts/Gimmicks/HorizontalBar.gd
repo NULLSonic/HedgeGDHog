@@ -102,24 +102,24 @@ func _ready():
 	$Grab_Sound.stream = grabSound
 	previousWidth = width
 	resize()
-	
+
 func resize():
 	var bodyWidth = width
 	if drawLeftAnchor:
 		bodyWidth -= leftAnchorWidth
 	if drawRightAnchor:
 		bodyWidth -= rightAnchorWidth
-	
+
 	$Main_Body.set_region_rect(Rect2(0, 0, bodyWidth, spriteTexture.get_height() / 3))
-	
+
 	$Left_Anchor.visible = drawLeftAnchor
 	$Right_Anchor.visible = drawRightAnchor
-	
+
 	if not drawLeftAnchor:
 		$Main_Body.position.x = 0
 	else:
 		$Main_Body.position.x = leftAnchorWidth
-		
+
 	$Right_Anchor.position.x = leftAnchorWidth + bodyWidth if drawLeftAnchor else bodyWidth
 
 	$Main_Body.set_texture(spriteTexture)
@@ -127,24 +127,24 @@ func resize():
 	$Left_Anchor.set_region_rect(Rect2(0, spriteTexture.get_height() / 3, leftAnchorWidth, spriteTexture.get_height() / 3))
 	$Right_Anchor.set_texture(spriteTexture)
 	$Right_Anchor.set_region_rect(Rect2(0, spriteTexture.get_height() / 3 * 2, rightAnchorWidth, spriteTexture.get_height() / 3))
-	
+
 	var shape = RectangleShape2D.new()
 	var collision = $Bar_Area/CollisionShape2D
 	shape.size.y = 8
 	# We don't want the player overhanging the outside of the gimmick by a lot, so clamp the size of the collision a bit.
 	shape.size.x = width - 28
-	
+
 	collision.set_shape(shape)
 	if (width % 2 == 0):
 		collision.position = Vector2(width / 2.0, 3)
 	else:
 		collision.position = Vector2(((width) / 2.0) + 0.5, 3)
-	
+
 func process_tool():
 	if previousWidth != width:
 		resize()
 		previousWidth = width
-	
+
 func _process_player_x_movement(_delta, player, playerIndex, xInput):
 	if (xInput < 0 and player.global_position.x > global_position.x + 16):
 		player.movement.x = -shimmySpeed
@@ -152,38 +152,42 @@ func _process_player_x_movement(_delta, player, playerIndex, xInput):
 		player.movement.x = shimmySpeed
 	else:
 		player.movement.x = 0
-		
+
 	# While shimmy is allowed, we are also allowed to jump off the gimmick at any time.
 	if player.any_action_pressed():
-		
+
 		# If down is held and downward detach is allowed, fall down instead.
 		if (allowDownwardDetach and player.get_y_input() > 0):
 			player.movement.y = 40
 		# Otherwise the player jumps upward.
 		else:
 			player.movement.y = -2 * (player.jmp / 3.0)
-			
+
 		player.groundSpeed = 0
 		player.animator.play("roll")
 		player.set_state(player.STATES.JUMP)
 		playersMode[playerIndex] = PLAYER_MODE.MONITORING
 		remove_player(player)
 		return 1
-		
+
 	return 0
-		
+
 func _process_player_shimmy_animation(player, xInput):
 	if (player.movement.x == 0):
-		player.animator.pause()
-	else:
 		player.animator.play("hangShimmy", -1, shimmySpeed / 60.0, false)
-	
+	else:
+		if player.movement.x < 0:
+			player.sprite.flip_h = true
+		else:
+			player.sprite.flip_h = false
+		player.animator.play("hangShimmy_move", -1, shimmySpeed / 60.0, false)
+
 func _process_player_launch_up(player, playerIndex):
 	# If brakes are allowed, we want to allow slamming the breaks a little faster than the upwarda nimation normally plas out.
 	if (player.animator.get_current_animation_position() >= player.animator.get_current_animation_length() * 0.91)\
 		and (player.get_y_input() > 0) and (allowBrake):
 		playersMode[playerIndex] = PLAYER_MODE.SHIMMY
-		player.animator.play("hangShimmy", -1, shimmySpeed / 60.0, false)
+		player.animator.play("hangShimmy_move", -1, shimmySpeed / 60.0, false)
 
 	# Otherwise we just launch the player on out of the gimmick
 	if (player.animator.get_current_animation_position() >= player.animator.get_current_animation_length() * 0.99):
@@ -200,7 +204,7 @@ func _process_player_launch_up(player, playerIndex):
 		# play player animation
 		player.animator.play("spring", -1, 1, false)
 		player.animator.queue(curAnim)
-		
+
 		if launchSpeedMode == LAUNCH_SPEED_MODE.MULTIPLY:
 			player.movement.y = playersEntryVel[playerIndex] * multiplySwingSpeed
 			if player.movement.y > -minSwingSpeed:
@@ -210,7 +214,7 @@ func _process_player_launch_up(player, playerIndex):
 		else:
 			player.movement.y = -swingSpeedConstant
 		remove_player(player)
-		
+
 func _process_player_launch_down(player, playerIndex):
 	# If brakes are allowed, we want to allow slamming the breaks a little faster than the upwarda nimation normally plas out.
 	if (player.animator.get_current_animation_position() >= player.animator.get_current_animation_length() * 0.91)\
@@ -231,7 +235,7 @@ func _process_player_launch_down(player, playerIndex):
 		else:
 			player.movement.y = swingSpeedConstant
 		remove_player(player)
-		
+
 func _process_player_monitoring(player, playerIndex):
 	if (player.movement.y < -swingContactSpeed):
 		player.sprite.flip_h = false
@@ -244,20 +248,20 @@ func _process_player_monitoring(player, playerIndex):
 		playersEntryVel[playerIndex] = player.movement.y
 		player.movement.y = 0
 		$Grab_Sound.play()
-			
+
 	elif (player.movement.y > swingContactSpeed):
 		player.sprite.flip_h = false
-		
+
 		# This is ok for now, but we need to clean it up.
 		player.animator.play("swingHorizontalBarMHZ", -1, 1, false)
 		player.set_state(player.STATES.ANIMATION)
-		
+
 		player.global_position.y = get_global_position().y + 3
 		playersMode[playerIndex] = PLAYER_MODE.LAUNCH_DOWN
 		playersEntryVel[playerIndex] = player.movement.y
 		player.movement.y = 0
 		$Grab_Sound.play()
-				
+
 	else:
 		player.sprite.flip_h = false
 		player.set_state(player.STATES.ANIMATION)
@@ -266,25 +270,25 @@ func _process_player_monitoring(player, playerIndex):
 		player.global_position.y = get_global_position().y + 3
 		playersMode[playerIndex] = PLAYER_MODE.SHIMMY
 		$Grab_Sound.play()
-	
+
 func process_game(_delta):
 	for i in players:
 		var playerIndex = players.find(i)
 		var xInput = i.get_x_input()
-		
+
 		# If the player is in monitoring mode, we check for when to stick them to the bar
 		if (playersMode[playerIndex] == PLAYER_MODE.MONITORING):
 			_process_player_monitoring(i, playerIndex)
-			
+
 		# If the player isn't on the bar yet, we are done with that player.
 		if playersMode[playerIndex] == PLAYER_MODE.MONITORING:
 			continue
-			
+
 		# As long as shimmying is allowed, shimmying is allowed in all active modes.
 		if (allowShimmy):
 			if (_process_player_x_movement(_delta, i, playerIndex, xInput)):
 				continue
-			
+
 		# Always lock y movement while in any of the modes. Always reset position in case this thing is moving for some reason.
 		i.movement.y = 0
 		i.global_position.y = get_global_position().y + 3
@@ -314,10 +318,10 @@ func _on_bar_area_body_entered(body):
 
 func _on_bar_area_body_exited(body):
 	remove_player(body)
-	
+
 func remove_player(player):
 	if players.has(player):
-		
+
 		# Clean out the player from all player-linked arrays.
 		var getIndex = players.find(player)
 		players.erase(player)

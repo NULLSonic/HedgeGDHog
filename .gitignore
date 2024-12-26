@@ -31,3 +31,4 @@ logs/
 .mono/
 data_*/
 mono_crash.*.json
+Graphics/Players/ManiaSheet.psd

@@ -34,7 +34,7 @@ func _ready():
 	assert(characterLabels.size() == CHARACTER_ID.size())
 
 func _input(event):
-	
+
 	if !selected:
 		var inputCue = Input.get_vector("gm_left","gm_right","gm_up","gm_down")
 		inputCue.x = round(inputCue.x)
@@ -54,20 +54,20 @@ func _input(event):
 			$Switch.play()
 		#Save previous input for next read
 		lastInput = inputCue
-		
+
 		$UI/Labels/Control/Character.text = characterLabels[characterID]
 		$UI/Labels/Control/Level.text = levelLabels[levelID]
-		
+
 		# turn on and off visibility of the characters based on the current selection
 		for i in characterSprites.size():
 			characterSprites[i].visible = (characterID == i)
-		
+
 		# finish character select if start is pressed
 		if event.is_action_pressed("gm_pause"):
 			selected = true
 			# set player 2 to none to prevent redundant code
 			Global.PlayerChar2 = Global.CHARACTERS.NONE
-			
+
 			# set the character
 			match(characterID):
 				CHARACTER_ID.SONIC_AND_TAILS:
@@ -81,7 +81,7 @@ func _input(event):
 					Global.PlayerChar1 = Global.CHARACTERS.KNUCKLES
 				CHARACTER_ID.AMY:
 					Global.PlayerChar1 = Global.CHARACTERS.AMY
-					
+
 			# set the level
 			match(levelID):
 				0: # Base Zone Act 1
@@ -90,5 +90,5 @@ func _input(event):
 					Global.nextZone = load("res://Scene/Zones/BaseZoneAct2.tscn") # Replace me! I don't exist yet!
 				#2: # Chunk Zone Act 1
 				#	Global.nextZone = load("res://Scene/Zones/ChunkZone.tscn")
-			
+
 			Global.main.change_scene_to_file(Global.nextZone,"FadeOut","FadeOut",1)

@@ -11,13 +11,13 @@ func _process(_delta):
 		# set movement to 0
 		parent.movement = Vector2.ZERO
 		activated = false
-		
+
 		# play super animation
 		parent.sfx[18].play()
 		parent.animator.play("super")
 		# wait for aniamtion to finish before activating super completely
 		await parent.animator.animation_finished
-		
+
 		if parent.ground:
 			parent.animator.play(lastAnim)
 		else:
@@ -25,7 +25,7 @@ func _process(_delta):
 		# enable control again
 		parent.set_state(parent.STATES.AIR)
 		activated = true
-		
+
 		# start super theme
 		Global.currentTheme = 0
 		Global.effectTheme.stream = Global.themes[Global.currentTheme]
@@ -41,7 +41,7 @@ func _process(_delta):
 	# if already super just go to air state
 	elif parent.isSuper:
 		parent.set_state(parent.STATES.AIR)
-		
+
 
 func state_exit():
 	activated = true

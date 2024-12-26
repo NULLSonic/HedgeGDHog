@@ -12,10 +12,7 @@ var actionPressed = false
 # you'll want to increase this for the number of playable characters
 var playerIdles = [
 # SONIC
-["idle1","idle2","idle2","idle2","idle2","idle3",
-"idle4","idle4","idle4","idle4","idle4","idle4","idle4","idle4","idle4","idle4",
-"idle4","idle4","idle4","idle4","idle4","idle4","idle4","idle4","idle4","idle4",
-"idle5"],
+["idle1","idle2","idle2","idle2","idle2","idle3","idle4","idle4","idle5"],
 # Tails
 ["idle1"], # Note: Tails idle loops on idle one, to add more idles make sure to disable his idle1 loop
 # Knuckles
@@ -98,22 +95,28 @@ func _process(delta):
 					getR = parent.verticalSensorLeft.is_colliding()
 				# No edge detected
 				if getM or !parent.ground or parent.angle != parent.gravityAngle:
-					# Play default idle animation
-					if parent.isSuper and parent.animator.has_animation("idle_super"):
-						parent.animator.play("idle_super")
+					if parent.lastActiveAnimation == "lookUp":
+						parent.animator.play("lookUp_end")
+					elif parent.lastActiveAnimation == "crouch":
+						parent.animator.play("crouch_end")
 					else:
+						# Play default idle animation
+						if parent.isSuper and parent.animator.has_animation("idle_super"):
+							parent.animator.play("idle_super")
+						else:
 
-						# loop through idle animations to see if there is an idle match
-						var matchIdleCheck = false
-						for i in playerIdles[parent.character-1]:
-							if parent.lastActiveAnimation == i:
-								matchIdleCheck = true
-
-						if parent.lastActiveAnimation != "idle" and !matchIdleCheck or !parent.animator.is_playing():
-							parent.animator.play("idle")
-							# queue player specific idle animations
+							# loop through idle animations to see if there is an idle match
+							var matchIdleCheck = false
 							for i in playerIdles[parent.character-1]:
-								parent.animator.queue(i)
+								if parent.lastActiveAnimation == i:
+									matchIdleCheck = true
+
+							if parent.lastActiveAnimation != "idle" and !matchIdleCheck or !parent.animator.is_playing():
+
+								parent.animator.play("idle")
+								# queue player specific idle animations
+								for i in playerIdles[parent.character-1]:
+									parent.animator.queue(i)
 
 				else:
 					match (parent.character):
@@ -146,9 +149,6 @@ func _process(delta):
 								parent.animator.play("edge_super")
 							# reverse edge
 							elif !getL and getR:
-								parent.animator.play("edge3")
-							# far edge
-							elif !getMEdge:
 								parent.animator.play("edge2")
 							# normal edge
 							else:
@@ -156,10 +156,14 @@ func _process(delta):
 
 		elif sign(parent.pushingWall) == sign(parent.movement.x) and parent.pushingWall != 0:
 			parent.animator.play("push")
-		elif(abs(parent.movement.x) < 6*60):
+		elif(abs(parent.movement.x) < 4*60):
 			parent.animator.play("walk")
+		elif(abs(parent.movement.x) < 6*60):
+			parent.animator.play("jog")
 		elif(abs(parent.movement.x) < 10*60):
 			parent.animator.play("run")
+		elif(abs(parent.movement.x) < 12*60):
+			parent.animator.play("dash")
 		else:
 			parent.animator.play("peelOut")
 

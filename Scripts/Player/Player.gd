@@ -58,8 +58,8 @@ var character = Global.CHARACTERS.SONIC
 # 1 Deceleration
 # 2 Friction
 # 3 Top Speed
-# 4 Air Acceleration 
-# 5 Rolling Friction 
+# 4 Air Acceleration
+# 5 Rolling Friction
 # 6 Rolling Deceleration
 # 7 Gravity
 # 8 Jump release velocity
@@ -96,7 +96,7 @@ var Bubble = preload("res://Entities/Misc/Bubbles.tscn")
 var CountDown = preload("res://Entities/Misc/CountDownTimer.tscn")
 var RotatingParticle = preload("res://Entities/Misc/RotatingParticle.tscn")
 
-var superSprite = load("res://Graphics/Players/SuperSonic.png")
+var superSprite = load("res://Graphics/Players/Mania.png")
 @onready var normalSprite = $Sonic/Sprite2D.texture
 var playerPal = preload("res://Shaders/PlayerPalette.tres")
 
@@ -155,7 +155,7 @@ var rachetScrollRight = false
 var rachetScrollTop = false
 var rachetScrollBottom = false
 
-var rotatableSprites = ["walk", "run", "peelOut", "hammerSwing"]
+var rotatableSpritesBlackList = [] # Add animation here that shouldn't rotate
 var direction = scale.x
 
 # Ground speed is mostly used for timing and animations, there isn't any functionality to it.
@@ -236,7 +236,7 @@ func _ready():
 	Global.players.append(self)
 	var _con = connect("connectFloor",Callable(self,"land_floor"))
 	_con = connect("connectCeiling",Callable(self,"touch_ceiling"))
-	
+
 	# Camera settings
 	get_parent().call_deferred("add_child", (camera))
 	camera.enabled = (playerControl == 1)
@@ -249,11 +249,11 @@ func _ready():
 	camera.drag_vertical_enabled = true
 	_con = connect("positionChanged",Callable(self,"on_position_changed"))
 	camera.global_position = global_position
-	
+
 	# Tails carry stuff
 	$TailsCarryBox/HitBox.disabled = true
-	
-	
+
+
 	# verify that we're not an ai
 	if playerControl == 1:
 		# input memory
@@ -269,39 +269,39 @@ func _ready():
 			partner.partner = self
 			partner.character = Global.PlayerChar2
 			partner.inputActions = INPUTACTIONS_P2
-		
+
 		# set my character
 		character = Global.PlayerChar1
-		
+
 		# set super palettes
 		match (character):
 			Global.CHARACTERS.SONIC:
 				# shader texture sizes need to be to the power of 2
-				playerPal.set_shader_parameter("amount",4)
-				playerPal.set_shader_parameter("palRows",16)
-				playerPal.set_shader_parameter("row",0)
-				playerPal.set_shader_parameter("paletteTexture",load("res://Graphics/Palettes/SuperSonicPal.png"))
-		
+				playerPal.set_shader_parameter("amount",18)
+				playerPal.set_shader_parameter("palRows",10)
+				playerPal.set_shader_parameter("row",1)
+				playerPal.set_shader_parameter("paletteTexture",load("res://Graphics/Palettes/Sonic/Mania.png"))
+
 			Global.CHARACTERS.TAILS:
 				playerPal.set_shader_parameter("amount",8)
 				playerPal.set_shader_parameter("palRows",16)
 				playerPal.set_shader_parameter("row",0)
 				playerPal.set_shader_parameter("paletteTexture",load("res://Graphics/Palettes/SuperTails.png"))
-		
+
 			Global.CHARACTERS.KNUCKLES:
 				playerPal.set_shader_parameter("amount",4)
 				playerPal.set_shader_parameter("palRows",16)
 				playerPal.set_shader_parameter("row",0)
 				playerPal.set_shader_parameter("paletteTexture",load("res://Graphics/Palettes/SuperKnuckles.png"))
-		
+
 			Global.CHARACTERS.AMY:
 				playerPal.set_shader_parameter("amount",4)
 				playerPal.set_shader_parameter("palRows",8)
 				playerPal.set_shader_parameter("row",0)
 				playerPal.set_shader_parameter("paletteTexture",load("res://Graphics/Palettes/SuperAmy.png"))
-				
-	
-	
+
+
+
 	# Checkpoints
 	await get_tree().process_frame
 	for i in Global.checkPoints:
@@ -311,9 +311,9 @@ func _ready():
 			Global.levelTime = Global.checkPointTime
 		else:
 			Global.levelTime = 0
-	
-	
-	
+
+
+
 	# Character settings
 	match (character):
 		Global.CHARACTERS.TAILS:
@@ -352,18 +352,18 @@ func _ready():
 			spriteController = amy
 			get_node("OldSprite").queue_free()
 			maxCharGroundHeight = 12 # adjust height distance to prevent clipping off floors (amy's smaller)
-			
-	
+
+
 	# run switch physics to ensure character specific physics
 	switch_physics()
-	
+
 	# Set hitbox
 	$HitBox.shape.size = currentHitbox.NORMAL
-	
+
 	# connect animator
 	animator.connect("animation_started",Callable(self,"_on_PlayerAnimation_animation_started"))
 	defaultSpriteOffset = sprite.offset
-	
+
 	# set secondary hitboxes
 	crouchBox = spriteController.get_node_or_null("CrouchBox")
 	if crouchBox != null:
@@ -371,20 +371,20 @@ func _ready():
 		add_child(crouchBox)
 		crouchBox.disabled = true
 		hitBoxOffset.crouch = crouchBox.position
-	
+
 	# add center reference node
 	centerReference = spriteController.get_node_or_null("CenterReference")
 	# hide reference
 	if centerReference:
 		centerReference.visible = false
-	
+
 	# reset camera limits
 	limitLeft = Global.hardBorderLeft
 	limitRight = Global.hardBorderRight
 	limitTop = Global.hardBorderTop
 	limitBottom = Global.hardBorderBottom
 	snap_camera_to_limits()
-	
+
 	# set partner sounds to share players (prevents sound overlap)
 	if playerControl == 0:
 		partner.sfx = sfx
@@ -416,13 +416,13 @@ func _process(delta):
 						# Copy the frame of input from the oldest written portion of the inputMemory
 						# Array into the partner's input for the current frame
 						partner.inputs[i] = inputMemory[memoryPosition][i]
-				
+
 				# x distance difference check, try to go to the partner
 				if (partner.inputs[INPUTS.XINPUT] == 0 and partner.inputs[INPUTS.YINPUT] == 0
 					or global_position.distance_to(partner.global_position) > 48 and round(movement.x/300) == 0
 					) and abs(global_position.x-partner.global_position.x) >= 32:
 					partner.inputs[INPUTS.XINPUT] = sign(global_position.x - partner.global_position.x)
-				
+
 				# Jump if pushing a wall, slower then half speed, on a flat surface and is either normal or jumping
 				if (partner.currentState == STATES.NORMAL or partner.currentState == STATES.JUMP) and abs(partner.movement.x) < top/2.0 and snap_angle(partner.angle) == 0 or (partner.pushingWall != 0 and pushingWall == 0):
 					# check partners position, only jump ever 0.25 seconds (prevent jump spam)
@@ -459,9 +459,9 @@ func _process(delta):
 				respawnTime -= delta
 			else:
 				respawn()
-				
-			
-	
+
+
+
 	# Sprite2D rotation handling
 	if (ground):
 		spriteRotation = rad_to_deg(angle)+rad_to_deg(gravityAngle)+90
@@ -470,16 +470,16 @@ func _process(delta):
 			spriteRotation = max(90,spriteRotation-(168.75*delta))
 		else:
 			spriteRotation = min(360,spriteRotation+(168.75*delta))
-	
+
 	# set the sprite to match the sprite rotation variable if it's in the rotatable Sprites list
-	if (rotatableSprites.has(animator.current_animation)):
+	if (!rotatableSpritesBlackList.has(animator.current_animation)):
 		# check if player rotation is greater then 45 degrees or current angle doesn't match the gravity's angle or not on the floor
-		if abs(spriteRotation-90) >= 32 or rotation != gravityAngle or !ground:
-			sprite.rotation = deg_to_rad(snapped(spriteRotation,45)-90)-rotation-gravityAngle
-		else:
-			sprite.rotation = -rotation-gravityAngle
+		#if abs(spriteRotation-90) >= 32 or rotation != gravityAngle or !ground:
+			#sprite.rotation = deg_to_rad(snapped(spriteRotation,45)-90)-rotation-gravityAngle
+		#else:
+			#sprite.rotation = -rotation-gravityAngle
 		# uncomment the line below and comment the line above for smooth rotation
-		#sprite.rotation = deg_to_rad(spriteRotation-90)-rotation-gravityAngle
+		sprite.rotation = deg_to_rad(spriteRotation-90)-rotation-gravityAngle
 	else:
 		sprite.rotation = -rotation+gravityAngle
 
@@ -512,7 +512,7 @@ func _process(delta):
 				rings = round(rings)
 				if character == Global.CHARACTERS.SONIC:
 					sprite.texture = normalSprite
-				
+
 		if (supTime <= 0):
 			if (shield != SHIELDS.NONE):
 				shieldSprite.visible = true
@@ -525,7 +525,7 @@ func _process(delta):
 			if Global.currentTheme == 0 and Global.effectTheme.is_playing():
 				Global.music.play()
 				Global.effectTheme.stop()
-	
+
 	if (shoeTime > 0):
 		shoeTime -= delta
 		if (shoeTime <= 0):
@@ -533,7 +533,7 @@ func _process(delta):
 			if Global.currentTheme == 1:
 				Global.music.play()
 				Global.effectTheme.stop()
-	
+
 	# Invulnerability timer
 	if (invTime > 0 and currentState != STATES.HIT and currentState != STATES.DIE):
 		visible = !visible
@@ -579,15 +579,15 @@ func _process(delta):
 		handle_animation_speed()
 	else:
 		handle_animation_speed(peelOutCharge)
-	
+
 	if animator.current_animation != "":
 		lastActiveAnimation = animator.current_animation
-		
+
 	# Time over
 	if Global.levelTime >= Global.maxTime:
 		kill(true)
-		
-	
+
+
 	# Water timer
 	if water and shield != SHIELDS.BUBBLE:
 		if airTimer > 0:
@@ -607,24 +607,24 @@ func _process(delta):
 			kill()
 	else:
 		airTimer = defaultAirTime
-	
+
 	# drowning theme related
 	if playerControl == 1:
 		if !Global.drowning.playing and airTimer <= panicTime and airTimer > 0:
 			Global.drowning.play()
 		elif Global.drowning.playing and airTimer > panicTime or airTimer <= 0:
 			Global.drowning.stop()
-	
+
 	# partner control timer for player 2
 	if partnerControlTime > 0:
 		partnerControlTime -= delta
-	
+
 	# Set player inputs
 	set_inputs()
 
 func _physics_process(delta):
 	super(delta)
-	
+
 	if ground and forceRoll > 0:
 		if (movement*Vector2(1,0)).is_equal_approx(Vector2.ZERO):
 			movement.x = 2*sign(-1+(forceDirection*2))*60.0
@@ -632,7 +632,7 @@ func _physics_process(delta):
 			set_state(STATES.ROLL)
 			animator.play("roll")
 			sfx[1].play()
-	
+
 	# Attacking is for rolling type animations
 	var attacking = false
 	# lists to check through for attack animations
@@ -646,11 +646,11 @@ func _physics_process(delta):
 	for i in currentAnimChecks:
 		if animator.current_animation == i:
 			attacking = true
-	
+
 	for i in lastActiveAnimCheck:
 		if lastActiveAnimation == i:
 			attacking = true
-	
+
 	# physics sets
 	# collide with solids if not rolling layer
 	set_collision_mask_value(16,!attacking)
@@ -662,16 +662,16 @@ func _physics_process(delta):
 	set_collision_layer_value(20,attacking)
 	# water surface running
 	set_collision_mask_value(23,ground and abs(groundSpeed) >= 7*60 and !water)
-	
+
 	if (ground):
 		groundSpeed = movement.x
-		
+
 	# wall detection
 	if horizontalSensor.is_colliding() or is_on_wall():
 		var getDir = sign(horizontalSensor.target_position.x)
 		if is_on_wall():
 			getDir = -sign(get_wall_normal().x)
-		
+
 		# give pushingWall a buffer otherwise this just switches on and off
 		pushingWall = getDir*2
 		if sign(movement.x) == sign(horizontalSensor.target_position.x):
@@ -679,46 +679,46 @@ func _physics_process(delta):
 		# disable pushing wall
 		if inputs[INPUTS.XINPUT] != sign(pushingWall):
 			pushingWall = 0
-		
+
 	elif pushingWall != 0:
 		# count down pushingwall
 		pushingWall -= sign(pushingWall)
-	
-	
-	
+
+
+
 	# Camera settings
 	if (camera != null):
-		
+
 		# Lerp camera scroll based on if on floor
 		var playerOffset = ((abs(global_position.y-camera.get_target_position().y)*2)/camDist.y)
-		
+
 		cameraDragLerp = max(int(!ground),min(cameraDragLerp,playerOffset)-6*delta)
-		
+
 		# Looking/Lag
 		# camLookDist is the distance, 0 is up, 1 is down
 		camLookAmount = clamp(camLookAmount,-1,1)
 		camLookOff = lerp(0,camLookDist[0],min(0,-camLookAmount))+lerp(0,camLookDist[1],min(0,camLookAmount))
-		
-		
+
+
 		if camLookAmount != 0:
 			var scrollSpeed = sign(camLookAmount)*delta*2
 			if sign(camLookAmount - scrollSpeed) == sign(camLookAmount):
 				camLookAmount -= sign(camLookAmount)*delta*2
 			else:
 				camLookAmount = 0
-		
+
 		# Camera Lock
-		
+
 		if camLockTime > 0:
 			camLockTime -= delta
-		
+
 		# Boundry handling
 		# Pan camera limits to boundries
-		
+
 		var viewSize = get_viewport_rect().size
 		var viewPos = camera.get_screen_center_position()
 		var scrollSpeed = 4.0*60.0*delta
-		
+
 		# Left
 		# snap the limit to the edge of the camera if snap out of range
 		if limitLeft > viewPos.x-viewSize.x*0.5:
@@ -729,7 +729,7 @@ func _physics_process(delta):
 		# else just snap the camera limit since it's not going to move the camera
 		else:
 			camera.limit_left = limitLeft
-		
+
 
 		# Right
 		# snap the limit to the edge of the camera if snap out of range
@@ -752,7 +752,7 @@ func _physics_process(delta):
 		# else just snap the camera limit since it's not going to move the camera
 		else:
 			camera.limit_top = limitTop
-		
+
 
 		# Bottom
 		# snap the limit to the edge of the camera if snap out of range
@@ -764,27 +764,27 @@ func _physics_process(delta):
 		# else just snap the camera limit since it's not going to move the camera
 		else:
 			camera.limit_bottom = limitBottom
-		
+
 		# Death at border bottom
 		if global_position.y > limitBottom:
 			kill()
-	
-	
-	
-	
+
+
+
+
 	# Stop movement at borders
 	if (global_position.x < limitLeft+cameraMargin or global_position.x > limitRight-cameraMargin):
 		movement.x = 0
 	# Clamp position
 	global_position.x = clamp(global_position.x,limitLeft+cameraMargin,limitRight-cameraMargin)
-	
-	
+
+
 	# center offsets (only moves hitbox if the centers moved)
 	if centerReference != null:
 		if centerReference.position != Vector2.ZERO:
 			# change to center offset if the center position is different
 			$HitBox.position = centerReference.position
-	
+
 	# Water
 	if Global.waterLevel != null and currentState != STATES.DIE:
 		# Enter water
@@ -801,7 +801,7 @@ func _physics_process(delta):
 				splash.play("Splash")
 				splash.z_index = sprite.z_index+10
 				get_parent().add_child(splash)
-			
+
 			# Elec shield/Fire shield logic is in HUD script (related to screen flashing)
 		# Exit water
 		if global_position.y < Global.waterLevel and water:
@@ -815,20 +815,20 @@ func _physics_process(delta):
 			splash.play("Splash")
 			splash.z_index = sprite.z_index+10
 			get_parent().add_child(splash)
-	
+
 	# We don't check for crushing if the player is in an invulnerable state (note that invulernable means immune to crushing/death by falling)
 	if !stateList[currentState].get_state_invulnerable():
 		var crushSensorLeft = $CrushSensorLeft
 		var crushSensorRight = $CrushSensorRight
 		var crushSensorUp = $CrushSensorUp
 		var crushSensorDown = $CrushSensorDown
-		
+
 		crushSensorLeft.position.x = -($HitBox.shape.size.x/2 - 1)
 		crushSensorRight.position.x = ($HitBox.shape.size.x/2 - 1)
 		crushSensorUp.position.y = -($HitBox.shape.size.y/2 -1)
 		# note that the bottom crush sensor actually goes *below* the feet so that it can contact the floor
 		crushSensorDown.position.y = ($HitBox.shape.size.y/2 +1)
-		
+
 		# crusher deaths NOTE: the translate and visibility is used for stuff like the sky sanctuary teleporters, visibility check is for stuff like the carnival night barrels
 		if (crushSensorLeft.get_overlapping_areas() + crushSensorLeft.get_overlapping_bodies()).size() > 0 and \
 			(crushSensorRight.get_overlapping_areas() + crushSensorRight.get_overlapping_bodies()).size() > 0 and (!translate or visible):
@@ -846,7 +846,7 @@ func set_inputs():
 		# player 2 active time check, if below 0 return to ai state
 		if partnerControlTime <= 0 and playerControl == 2:
 			playerControl = 0
-		
+
 		# player 2 control active check
 		for i in inputActions.size():
 			var player2Active = false
@@ -861,8 +861,8 @@ func set_inputs():
 				# if none of the button checks fail, give the player control
 				playerControl = 2
 				partnerControlTime = DEFAULT_PLAYER2_CONTROL_TIME
-		
-	
+
+
 	if playerControl > 0:
 		inputs[INPUTS.ACTION] = (int(Input.is_action_pressed(inputActions[INPUTS.ACTION]))*2)-int(Input.is_action_just_pressed(inputActions[INPUTS.ACTION]))
 		inputs[INPUTS.ACTION2] = (int(Input.is_action_pressed(inputActions[INPUTS.ACTION2]))*2)-int(Input.is_action_just_pressed(inputActions[INPUTS.ACTION2]))
@@ -900,62 +900,62 @@ func any_action_held_or_pressed():
 # Note that there is no way to check the 'pressed' vs 'held' status of X/Y inputs.
 func get_y_input():
 	return inputs[INPUTS.YINPUT]
-	
+
 func is_up_held():
 	return inputs[INPUTS.YINPUT] < 0
-	
+
 func is_down_held():
 	return inputs[INPUTS.YINPUT] > 0
-	
+
 func get_x_input():
 	return inputs[INPUTS.XINPUT]
-	
+
 func is_left_held():
 	return inputs[INPUTS.XINPUT] < 0
-	
+
 func is_right_held():
 	return inputs[INPUTS.XINPUT] > 0
-	
+
 func get_state():
 	return currentState
 
 func set_state(newState, forceMask = Vector2.ZERO):
-	
+
 	defaultHitBoxPos = hitBoxOffset.normal
 	$HitBox.position = defaultHitBoxPos
 	# reset the center offset
 	if centerReference != null:
 		centerReference.position = Vector2.ZERO
-	
+
 	if currentState != newState:
 		var lastState = currentState
 		currentState = newState
 		stateList[lastState].state_exit()
 		stateList[newState].state_activated()
-	
+
 	for i in stateList:
 		i.set_process(i == stateList[newState])
 		i.set_physics_process(i == stateList[newState])
 		i.set_process_input(i == stateList[newState])
-	
+
 	var forcePoseChange = Vector2.ZERO
-	
+
 	if (forceMask == Vector2.ZERO):
 		match(newState):
 			STATES.JUMP, STATES.ROLL:
 				# adjust y position
 				forcePoseChange = ((currentHitbox.ROLL-$HitBox.shape.size)*Vector2.UP).rotated(rotation)*0.5
-				
+
 				# change hitbox size
 				$HitBox.shape.size = currentHitbox.ROLL
 			STATES.SPINDASH:
 				# change hitbox size
 				$HitBox.shape.size = currentHitbox.CROUCH
-				
+
 			_:
 				# adjust y position
 				forcePoseChange = ((currentHitbox.NORMAL-$HitBox.shape.size)*Vector2.UP).rotated(rotation)*0.5
-				
+
 				# change hitbox size
 				$HitBox.shape.size = currentHitbox.NORMAL
 	else:
@@ -963,9 +963,9 @@ func set_state(newState, forceMask = Vector2.ZERO):
 		forcePoseChange = ((forceMask-$HitBox.shape.size)*Vector2.UP).rotated(rotation)*0.5
 		# change hitbox size
 		$HitBox.shape.size = forceMask
-	
+
 	position += forcePoseChange
-	
+
 	sprite.get_node("DashDust").visible = false
 
 # sets the hitbox mask shape, referenced in other states
@@ -973,7 +973,7 @@ func set_hitbox(mask = Vector2.ZERO, forcePoseChange = false):
 	# adjust position if on floor or force pose change
 	if ground or forcePoseChange:
 		position += ((mask-$HitBox.shape.size)*Vector2.UP).rotated(rotation)*0.5
-	
+
 	$HitBox.shape.size = mask
 
 # set shields
@@ -982,7 +982,7 @@ func set_shield(setShieldID):
 	# verify not in water and shield compatible
 	if water and (setShieldID == SHIELDS.FIRE or setShieldID == SHIELDS.ELEC):
 		return false
-	
+
 	shield = setShieldID
 	# make shield visible if not super and the invincibility barrier isn't going
 	shieldSprite.visible = !isSuper and !$InvincibilityBarrier.visible
@@ -1063,11 +1063,11 @@ func get_ring():
 		sfx[7+ringChannel].play()
 		sfx[7].play()
 		ringChannel = int(!ringChannel)
-		
+
 	elif partner != null:
 		if partner.playerControl == 1: # error prevention
 			partner.get_ring()
-	
+
 func kill(always = true):
 	if !(get_tree().current_scene is MainGameScene) and always == false:
 		sfx[6].play()
@@ -1102,7 +1102,7 @@ func kill(always = true):
 			animator.play("drown")
 			sfx[25].play()
 		set_state(STATES.DIE,currentHitbox.NORMAL)
-		
+
 		if playerControl == 1:
 			Global.main.sceneCanPause = false # stop the ability to pause
 
@@ -1111,7 +1111,7 @@ func respawn():
 		# cancel function if partner is dead or ai controlled
 		if partner.currentState == STATES.DIE || partner.playerControl != 1:
 			return false
-		
+
 		airTimer = 1
 		collision_layer = 0
 		collision_mask = 0
@@ -1143,13 +1143,13 @@ func touch_ceiling():
 	movement.y = 0
 
 func land_floor():
-	
+
 	abilityUsed = false
 	# landing movement calculation
-	
+
 	# recalculate ground angle
 	var calcAngle = wrapf(rad_to_deg(angle)-rad_to_deg(gravityAngle),0,360)
-	
+
 	# check not shallow
 	if (calcAngle >= 22.5 and calcAngle <= 337.5 and abs(movement.x) < movement.y):
 		# check half steep
@@ -1241,10 +1241,10 @@ func cam_update(forceMove = false):
 		return false
 	# Camera vertical drag
 	var viewSize = get_viewport_rect().size
-	
+
 	camera.drag_top_margin =    lerp(0.0,float(camDist.y/viewSize.y),float(cameraDragLerp))
 	camera.drag_bottom_margin = camera.drag_top_margin
-	
+
 	# Extra drag margin for rolling
 	match(character):
 		Global.CHARACTERS.TAILS:
@@ -1273,13 +1273,13 @@ func cam_update(forceMove = false):
 		#camera.global_position = camera.global_position.move_toward(getPos,16*60*get_physics_process_delta_time())
 		# uncomment below for immediate camera
 		#camera.global_position = getPos
-	
+
 	# Ratchet camera scrolling (locks the camera behind the player)
 	if rachetScrollLeft:
 		limitLeft = max(limitLeft,camera.get_screen_center_position().x-viewSize.x/2)
 	if rachetScrollRight:
 		limitRight = max(limitRight,camera.get_screen_center_position().x+viewSize.x/2)
-	
+
 	if rachetScrollTop:
 		limitTop = max(limitTop,camera.get_screen_center_position().y-viewSize.y/2)
 	if rachetScrollBottom:
@@ -1287,7 +1287,7 @@ func cam_update(forceMove = false):
 
 func lock_camera(time = 1):
 	camLockTime = max(time,camLockTime)
-	
+
 
 func snap_camera_to_limits():
 	camera.limit_left = max(limitLeft,Global.hardBorderLeft)
@@ -1364,7 +1364,7 @@ func action_water_run_handle():
 	var colCheck = move_and_collide(Vector2.DOWN.rotated(rotation),true)
 	if colCheck:
 		touchWater = colCheck.get_collider().get_collision_layer_value(23)
-	
+
 
 	# enable dash dust if touching water
 	dash.visible = (get_collision_mask_value(23) and touchWater and ground)
@@ -1380,7 +1380,7 @@ func action_water_run_handle():
 
 func handle_animation_speed(gSpeed = groundSpeed):
 	match(animator.current_animation):
-		"walk", "run", "peelOut":
+		"walk", "jog", "run", "dash", "peelOut":
 			var duration = floor(max(0,8.0-abs(gSpeed/60.0)))
 			animator.speed_scale = (1.0/(duration+1.0))*(60.0/10.0)
 		"roll":

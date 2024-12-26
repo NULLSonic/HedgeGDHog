@@ -55,7 +55,7 @@ func set_spring():
 			scale = Vector2(1,1-(springDirection-5))
 			# place super.normalized() at the end for CD physics
 			hitDirection = -scale
-			
+
 	$SpringAnimator.play(animList[animID])
 	$SpringAnimator.advance($SpringAnimator.get_animation(animList[animID]).length)
 	if $Spring.texture != springTextures[type]:
@@ -99,13 +99,13 @@ func physics_collision(body, hitVector):
 			body.direction = sign(setMove.x)
 		$SpringAnimator.play(animList[animID])
 		Global.play_sound(springSound)
-		
+
 		#Restore Air Control
 		body.airControl = true
 		# Disable pole grabs
 		body.poleGrabID = self
 		return true
-	
+
 
 func _on_Diagonal_body_entered(body):
 	# diagonal springs are pretty straightforward

@@ -17,7 +17,7 @@ func _ready():
 	# Life Icon (life icons are a special case)
 	if item == 10 and !Engine.is_editor_hint():
 		$Item.frame = item+1+Global.PlayerChar1
-	
+
 
 func _process(_delta):
 	# update for editor
@@ -32,11 +32,11 @@ func destroy():
 	var explosion = Explosion.instantiate()
 	get_parent().add_child(explosion)
 	explosion.global_position = global_position
-	
+
 	# deactivate
 	isActive = false
 	physics = false
-	
+
 	# set item to have a high Z index so it overlays a lot
 	$Item.z_index += 1000
 	# play destruction animation
@@ -114,7 +114,7 @@ func physics_collision(body, hitVector):
 		# if they are then destroy
 		if body.playerControl == 1 and body.currentState != body.STATES.SPINDASH:
 			body.movement.y = -abs(body.movement.y)
-			
+
 			if body.currentState == body.STATES.ROLL:
 				body.movement.y = 0
 			body.ground = false

@@ -460,7 +460,8 @@ func _process(delta):
 			else:
 				respawn()
 
-
+	# Making sure rings never go over 999.
+	rings = clamp(rings, 0, 999)
 
 	# Sprite2D rotation handling
 	if (ground):

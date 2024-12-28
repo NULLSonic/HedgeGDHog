@@ -4,9 +4,9 @@ extends CanvasLayer
 @export var focusPlayer = 0
 
 # counter elements pointers
-@onready var scoreText = $Counters/Text/ScoreNumber
-@onready var timeText = $Counters/Text/TimeNumbers
-@onready var ringText = $Counters/Text/RingCount
+@onready var scoreText = $Counters/Score/ScoreNumber
+@onready var timeText = $Counters/Time/TimeNumbers
+@onready var ringText = $Counters/Rings/RingCount
 @onready var lifeText = $LifeCounter/Icon/LifeText
 
 # play level card, if true will play the level card animator and use the zone name and zone text with the act
@@ -96,18 +96,16 @@ func _process(delta):
 		visible = not visible
 
 	# set score string to match global score with leading 0s
-	scoreText.text = "%6d" % Global.score
+	scoreText.text = "%7d" % Global.score
 
 	# clamp time so that it won't go to 10 minutes
 	var timeClamp = min(Global.levelTime,Global.maxTime-1)
 	# set time text, format it to have a leadin 0 so that it's always 2 digits
-	timeText.text = "%2d" % floor(timeClamp/60) + ":" + str(fmod(floor(timeClamp),60)).pad_zeros(2)
-	# uncomment below (and remove above line) for mili seconds
-	#timeText.text = "%2d" % floor(timeClamp/60) + ":" + str(fmod(floor(timeClamp),60)).pad_zeros(2) + ":" + str(fmod(floor(timeClamp*100),100)).pad_zeros(2)
+	timeText.text = "%1d" % floor(timeClamp/60) + "'" + str(fmod(floor(timeClamp),60)).pad_zeros(2) + "\"" + str(fmod(floor(timeClamp*100),100)).pad_zeros(2)
 
 	# cehck that there's player, if there is then track the focus players ring count
 	if (Global.players.size() > 0):
-		ringText.text = "%3d" % Global.players[focusPlayer].rings
+		ringText.text = "%7d" % Global.players[focusPlayer].rings
 
 	# track lives with leading 0s
 	lifeText.text = "%2d" % Global.lives
@@ -159,14 +157,14 @@ func _process(delta):
 		if Global.players.size() > 0:
 			# if ring count at zero, flash rings
 			if Global.players[focusPlayer].rings <= 0:
-				$Counters/Text/Rings.visible = !$Counters/Text/Rings.visible
+				$Counters/Rings/Red.visible = !$Counters/Rings/Red.visible
 			else:
-				$Counters/Text/Rings.visible = false
+				$Counters/Rings/Red.visible = false
 		# if minutes up to 9 then flash time
 		if Global.levelTime >= 60*9:
-			$Counters/Text/Time.visible = !$Counters/Text/Time.visible
+			$Counters/Time/Red.visible = !$Counters/Time/Red.visible
 		else:
-			$Counters/Text/Time.visible = false
+			$Counters/Time/Red.visible = false
 	elif !get_tree().paused:
 		flashTimer -= delta
 
@@ -219,12 +217,14 @@ func _process(delta):
 	elif Global.gameOver and !gameOver:
 		# set game over to true so this doesn't loop
 		gameOver = true
+		$GameOver.show()
 		# determine if the game over is a time over (game over and time over sequences are the same but game says time)
+		$GameOver/GameOver.speed_scale = 0.5
 		if Global.levelTime >= Global.maxTime:
-			$GameOver/Game.frame = 1
-		# play game over animation and play music
-		$GameOver/GameOver.play("GameOver")
-		$GameOver/GameOverMusic.play()
+			$GameOver/GameOver.play("TimeOver")
+		else:
+			$GameOver/GameOver.play("GameOver")
+
 		# stop normal music tracks
 		Global.music.stop()
 		Global.effectTheme.stop()
@@ -242,6 +242,9 @@ func _process(delta):
 			Global.main.change_scene_to_file(null,"FadeOut")
 			await Global.main.scene_faded
 			Global.levelTime = 0
+
+func play_game_over_track(): # As it own function cuz the track plays later
+	$GameOver/GameOverMusic.play()
 
 # counter count down
 func _on_CounterCount_timeout():

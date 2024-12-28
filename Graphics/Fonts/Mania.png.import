@@ -1,0 +1,25 @@
+[remap]
+
+importer="font_data_image"
+type="FontFile"
+uid="uid://dpxfm1jg3tnkm"
+path="res://.godot/imported/Mania.png-49a51fdc01b3b20a0dd1c57e6f6cff4a.fontdata"
+
+[deps]
+
+source_file="res://Graphics/Fonts/Mania.png"
+dest_files=["res://.godot/imported/Mania.png-49a51fdc01b3b20a0dd1c57e6f6cff4a.fontdata"]
+
+[params]
+
+character_ranges=PackedStringArray("65-90", "32")
+kerning_pairs=PackedStringArray()
+columns=27
+rows=1
+image_margin=Rect2i(0, 0, 0, 0)
+character_margin=Rect2i(0, 0, 0, 0)
+ascent=0
+descent=0
+fallbacks=[]
+compress=true
+scaling_mode=2

@@ -62,6 +62,7 @@ var specialStageID = 0
 var levelTime = 0 # the timer that counts down while the level isn't completed or in a special ring
 var globalTimer = 0 # global timer, used as reference for animations
 var maxTime = 60*10
+var coolBonus = 10000 # Cool Bonus from Sonic Mania
 
 # water level of the current level, setting this to null will disable the water
 var waterLevel = null
@@ -137,6 +138,7 @@ func reset_values():
 	continues = 0
 	levelTime = 0
 	emeralds = 0
+	coolBonus = 10000
 	specialStageID = 0
 	checkPoints = []
 	checkPointTime = 0

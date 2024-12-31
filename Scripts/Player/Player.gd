@@ -1019,6 +1019,8 @@ func hit_player(damagePoint = global_position, damageType = 0, soundID = 6):
 		if water:
 			movement = movement*0.5
 
+		Global.coolBonus -= 1000
+
 		disconect_from_floor()
 		set_state(STATES.HIT)
 		invTime = 120 # Ivulnerable for 2 seconds. Starts counting *after* landing.
@@ -1074,6 +1076,8 @@ func kill(always = true):
 		sfx[6].play()
 		return false
 	if currentState != STATES.DIE:
+		Global.coolBonus = 0
+
 		disconect_from_floor()
 		supTime = 0
 		shoeTime = 0

@@ -39,6 +39,8 @@ func _ready():
 
 	level_reset_data(false)
 
+	Global.coolBonus = 10000
+
 	wasLoaded = true
 
 # used for stage starts, also used for returning from special stages

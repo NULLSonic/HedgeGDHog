@@ -24,6 +24,9 @@ var isStageEnding = false
 # level clear bonuses (check _on_CounterCount_timeout)
 var timeBonus = 0
 var ringBonus = 0
+var coolBonus = 0
+
+var totalBonus = 0
 
 # gameOver is used to initialize the game over animation sequence, note: this is for animation, if you want to use the game over status it's in global
 var gameOver = false
@@ -86,10 +89,6 @@ func _ready():
 		Global.emit_stage_start()
 		get_tree().paused = false
 	Global.timerActive = true
-	# replace "sonic" in stage clear to match the player clear string
-	$LevelClear/Passed.text = $LevelClear/Passed.text.replace("SONIC",characterNames[Global.PlayerChar1-1])
-	# set the act clear frame
-	$LevelClear/Act.frame = act-1
 
 func _process(delta):
 	if Input.is_action_just_pressed("gm_hud_toggle"):
@@ -176,12 +175,13 @@ func _process(delta):
 
 			# show level clear elements
 			$LevelClear.visible = true
-			$LevelClear/Tally/ScoreNumber.text = scoreText.text
-			$LevelClear/Animator.play("LevelClear")
+			#$LevelClear/Tally/ScoreNumber.text = scoreText.text
+			$LevelClear/Animator.play(characterNames[Global.PlayerChar1-1].capitalize())
+			$LevelClear/TopBar/ActNumber.text = str(act)
 
 			# set bonuses
 			ringBonus = floor(Global.players[focusPlayer].rings)*100
-			$LevelClear/Tally/RingNumbers.text = "%6d" % ringBonus
+			$LevelClear/RingBonus/Numbers.text = "%6d" % ringBonus
 			timeBonus = 0
 			# bonus time table
 			var bonusTable = [
@@ -200,7 +200,12 @@ func _process(delta):
 				if Global.levelTime < i[0]:
 					timeBonus = i[1]
 			# set bonus text for time
-			$LevelClear/Tally/TimeNumbers.text = "%6d" % timeBonus
+			$LevelClear/TimeBonus/Numbers.text = "%6d" % timeBonus
+			# set bonus text for cool bonus
+			coolBonus = Global.coolBonus
+			$LevelClear/CoolBonus/Numbers.text = "%6d" % coolBonus
+			# setup text for the total
+			$LevelClear/Total/Numbers.text = "%6d" % totalBonus
 			# wait for counter wait time to count down
 			$LevelClear/CounterWait.start()
 			await $LevelClear/CounterWait.timeout
@@ -251,26 +256,35 @@ func _on_CounterCount_timeout():
 	# play counter sound
 	$LevelClear/Counter.play()
 
-	# decrease bonuses in order, if time bonus not 0 then count time down, then do the same for rings
-	# if you add other bonuses (like perfect bonus) you'll want to add it to the end of the sequence before the end
-	if timeBonus > 0:
-		# check if adding score would hit the life bonus
-		Global.check_score_life(100)
-		timeBonus -= 100
-		Global.score += 100
-	elif ringBonus > 0:
-		# check if adding score would hit the life bonus
-		Global.check_score_life(100)
-		ringBonus -= 100
-		Global.score += 100
-	else:
+	if timeBonus == 0 and ringBonus == 0 and coolBonus == 0:
 		# stop counter timer and play score sound
 		$LevelClear/Counter.play()
 		$LevelClear/CounterCount.stop()
 		$LevelClear/Score.play()
 		# emit tally clear signal
 		emit_signal("tally_clear")
+	else:
+		if timeBonus > 0:
+			# check if adding score would hit the life bonus
+			Global.check_score_life(100)
+			timeBonus -= 100
+			totalBonus += 100
+			Global.score += 100
+		if ringBonus > 0:
+			# check if adding score would hit the life bonus
+			Global.check_score_life(100)
+			ringBonus -= 100
+			totalBonus += 100
+			Global.score += 100
+		if coolBonus > 0:
+			# check if adding score would hit the life bonus
+			Global.check_score_life(100)
+			coolBonus -= 100
+			totalBonus += 100
+			Global.score += 100
+
 	# set the level clear strings to the bonuses
-	$LevelClear/Tally/ScoreNumber.text = scoreText.text
-	$LevelClear/Tally/TimeNumbers.text = "%6d" % timeBonus
-	$LevelClear/Tally/RingNumbers.text = "%6d" % ringBonus
+	$LevelClear/TimeBonus/Numbers.text = "%6d" % timeBonus
+	$LevelClear/RingBonus/Numbers.text = "%6d" % ringBonus
+	$LevelClear/CoolBonus/Numbers.text = "%6d" % coolBonus
+	$LevelClear/Total/Numbers.text = "%6d" % totalBonus

@@ -1,4 +1,4 @@
-[gd_scene load_steps=71 format=3 uid="uid://dncucwq3g1nna"]
+[gd_scene load_steps=72 format=3 uid="uid://dncucwq3g1nna"]
 
 [ext_resource type="Material" uid="uid://bveqi5m5ihsgj" path="res://Shaders/PlayerPalette.tres" id="1_bjmss"]
 [ext_resource type="Texture2D" uid="uid://xokvw2441uut" path="res://Graphics/Players/ManiaSheet.png" id="2_r5j86"]
@@ -1337,6 +1337,24 @@ tracks/0/keys = {
 "values": [Rect2(1128, 1191, 48, 48), Rect2(1079, 1191, 48, 48), Rect2(1030, 1191, 48, 48), Rect2(981, 1191, 48, 48), Rect2(932, 1191, 48, 48), Rect2(883, 1191, 48, 48), Rect2(834, 1191, 48, 48), Rect2(785, 1191, 48, 48), Rect2(736, 1191, 48, 48), Rect2(687, 1191, 48, 48), Rect2(638, 1191, 48, 48), Rect2(589, 1191, 48, 48), Rect2(540, 1191, 48, 48), Rect2(491, 1191, 48, 48), Rect2(442, 1191, 48, 48), Rect2(393, 1191, 48, 48), Rect2(344, 1191, 48, 48), Rect2(295, 1191, 48, 48), Rect2(246, 1191, 48, 48), Rect2(197, 1191, 48, 48), Rect2(148, 1191, 48, 48), Rect2(99, 1191, 48, 48), Rect2(50, 1191, 48, 48), Rect2(1, 1191, 48, 48)]
 }
 
+[sub_resource type="Animation" id="Animation_615qt"]
+resource_name = "fall"
+length = 0.25
+loop_mode = 1
+step = 0.0166667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sonic/Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(440, 838, 48, 48)]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_36uej"]
 _data = {
 "RESET": SubResource("86"),
@@ -1358,6 +1376,7 @@ _data = {
 "edge1": SubResource("104"),
 "edge2": SubResource("106"),
 "edge_super": SubResource("110"),
+"fall": SubResource("Animation_615qt"),
 "grabVerticalBar": SubResource("123"),
 "grabVerticalBarOffset": SubResource("124"),
 "hang": SubResource("112"),
@@ -1529,7 +1548,7 @@ region_rect = Rect2(1, 13, 48, 48)
 visible = false
 sprite_frames = SubResource("96")
 autoplay = "default"
-frame = 3
+frame_progress = 0.829852
 offset = Vector2(-9, -4)
 
 [node name="CrouchBox" type="CollisionShape2D" parent="."]

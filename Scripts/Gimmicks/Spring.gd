@@ -80,7 +80,6 @@ func physics_collision(body, hitVector):
 						curAnim = "run"
 			# play player animation
 			body.animator.play("spring")
-			body.animator.queue(curAnim)
 			# set vertical speed
 			body.movement.y = setMove.y
 			body.set_state(body.STATES.AIR)
@@ -124,7 +123,6 @@ func _on_Diagonal_body_entered(body):
 					curAnim = "run"
 		# play player animation
 		body.animator.play("springScrew")
-		body.animator.queue(curAnim)
 	Global.play_sound(springSound)
 	# Disable pole grabs
 	body.poleGrabID = self

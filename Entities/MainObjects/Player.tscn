@@ -72,7 +72,6 @@ resource_local_to_scene = true
 size = Vector2(18, 38)
 
 [sub_resource type="CanvasItemMaterial" id="2"]
-blend_mode = 5
 
 [sub_resource type="AtlasTexture" id="32"]
 atlas = ExtResource("17")
@@ -1289,12 +1288,10 @@ autostart = true
 [node name="Sonic" parent="." instance=ExtResource("2")]
 
 [node name="Shields" type="AnimatedSprite2D" parent="."]
-visible = false
 z_index = 6
 material = SubResource("2")
 sprite_frames = SubResource("57")
 animation = &"Insta"
-frame = 5
 script = ExtResource("19")
 
 [node name="ShieldTimer" type="Timer" parent="Shields"]

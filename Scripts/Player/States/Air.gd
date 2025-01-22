@@ -113,6 +113,8 @@ func _process(_delta):
 					Global.CHARACTERS.AMY:
 						# set ability used to true to prevent multiple uses
 						parent.abilityUsed = true
+
+						parent.movement.y = -5.5*60.0
 						# enable insta shield hitbox if hammer drop dashing
 						parent.shieldSprite.get_node("InstaShieldHitbox/HitBox").disabled = (parent.animator.current_animation == "dropDash")
 						# play hammer sound
